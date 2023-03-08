@@ -202,9 +202,19 @@ public class JanksonOps implements DynamicOps<JsonElement> {
 
                 JsonArray ret = new JsonArray();
                 if (prefix != ops().empty() && arr != null) {
-                    ret.addAll(arr);
+                    for (int i = 0; i < arr.size(); i++) {
+                        ret.add(arr.get(i));
+                        if (arr.get(i) instanceof Commented commented) {
+                            ret.setComment(i, commented.getComment());
+                        }
+                    }
                 }
-                ret.addAll(array);
+                for (int i = 0; i < array.size(); i++) {
+                    ret.add(array.get(i));
+                    if (array.get(i) instanceof Commented commented) {
+                        ret.setComment(i, commented.getComment());
+                    }
+                }
                 return DataResult.success(ret);
             });
             builder = DataResult.success(new JsonArray(), Lifecycle.stable());
@@ -213,13 +223,25 @@ public class JanksonOps implements DynamicOps<JsonElement> {
 
         @Override
         public ListBuilder<JsonElement> add(JsonElement value) {
-            builder = builder.map(array -> {array.add(value); return array;});
+            builder = builder.map(array -> {
+                array.add(value);
+                if (value instanceof Commented commented) {
+                    array.setComment(array.indexOf(value), commented.getComment());
+                }
+                return array;
+            });
             return this;
         }
 
         @Override
         public ListBuilder<JsonElement> add(DataResult<JsonElement> value) {
-            builder = builder.apply2stable((array, jsonElement) -> {array.add(jsonElement); return array;}, value);
+            builder = builder.apply2stable((array, jsonElement) -> {
+                array.add(jsonElement);
+                if (jsonElement instanceof Commented commented) {
+                    array.setComment(array.indexOf(jsonElement), commented.getComment());
+                }
+                return array;
+                }, value);
             return this;
         }
 
