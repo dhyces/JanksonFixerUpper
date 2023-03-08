@@ -4,6 +4,7 @@ package dhyces.janksonfixerupper.serialization.comments;
 import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonElement;
 import blue.endless.jankson.JsonObject;
+import blue.endless.jankson.JsonPrimitive;
 
 import java.util.function.BiFunction;
 
@@ -35,14 +36,14 @@ public interface Comment extends BiFunction<JsonElement, JsonElement, String> {
         };
     }
 
-    static Comment ifMapElseEmpty(BiFunction<JsonObject, JsonElement, String> function) {
+    static Comment ifMapElseEmpty(BiFunction<JsonObject, String, String> function) {
         return ifMapElse(function, "");
     }
 
-    static Comment ifMapElse(BiFunction<JsonObject, JsonElement, String> function, String defaultVal) {
+    static Comment ifMapElse(BiFunction<JsonObject, String, String> function, String defaultVal) {
         return (container, key) -> {
-            if (container instanceof JsonObject object) {
-                return function.apply(object, key);
+            if (container instanceof JsonObject object && key instanceof JsonPrimitive primitive) {
+                return function.apply(object, primitive.asString());
             }
             return defaultVal;
         };
