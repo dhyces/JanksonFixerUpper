@@ -1,0 +1,40 @@
+import org.jetbrains.gradle.ext.JUnit
+
+plugins {
+    id 'java'
+    id 'idea'
+    id "org.jetbrains.gradle.plugin.idea-ext" version "1.1.7"
+}
+
+group 'dhyces'
+version '1.0.0'
+
+idea.project.settings {
+    runConfigurations {
+        "Tests"(JUnit) {
+            passParentEnvs = false
+            moduleName = "${rootProject.name}.test"
+            packageName = "dhyces.janksonfixerupper.serialization"
+            envs = ["TMP": "src/test/temp"]
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url "https://libraries.minecraft.net"
+    }
+}
+
+dependencies {
+    implementation "blue.endless:jankson:1.2.1"
+    implementation 'com.mojang:datafixerupper:5.0.28'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
+}
+
+test {
+    useJUnitPlatform()
+}

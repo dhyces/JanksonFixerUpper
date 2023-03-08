@@ -1,0 +1,9 @@
+{
+  someStr: "goodbye!",
+  someDouble: 1.3,
+  floatList: [
+    4.0,
+    2.7,
+    5.234
+  ]
+}
