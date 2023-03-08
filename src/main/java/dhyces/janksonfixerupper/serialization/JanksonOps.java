@@ -4,9 +4,7 @@ import blue.endless.jankson.*;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.*;
 import dhyces.janksonfixerupper.serialization.wrappers.Commented;
-import dhyces.janksonfixerupper.serialization.wrappers.CommentedJsonPrimitive;
 
-import java.math.BigDecimal;
 import java.util.Map;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
@@ -75,7 +73,7 @@ public class JanksonOps implements DynamicOps<JsonElement> {
             return JsonPrimitive.of(i.longValue());
         }
         if (num instanceof Float f) {
-            return JsonPrimitive.of(f.doubleValue());
+            return JsonPrimitive.of(Double.parseDouble(f.toString()));
         }
         if (num instanceof Double d) {
             return JsonPrimitive.of(d);
