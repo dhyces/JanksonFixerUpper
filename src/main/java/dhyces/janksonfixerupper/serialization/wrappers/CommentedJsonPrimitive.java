@@ -1,22 +1,23 @@
 package dhyces.janksonfixerupper.serialization.wrappers;
 
 import blue.endless.jankson.JsonPrimitive;
+import dhyces.janksonfixerupper.serialization.comments.Comment;
 
 import javax.annotation.Nonnull;
 
 public class CommentedJsonPrimitive extends JsonPrimitive implements Commented {
-    private String comment;
+    private Comment comment;
 
-    public CommentedJsonPrimitive(@Nonnull Object value, String comment) {
+    public CommentedJsonPrimitive(@Nonnull Object value, Comment comment) {
         super(value);
         this.comment = comment;
     }
 
-    public void setComment(String comment) {
+    public void setComment(Comment comment) {
         this.comment = comment;
     }
 
-    public String getComment() {
+    public Comment getComment() {
         return comment;
     }
 }

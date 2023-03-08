@@ -102,11 +102,16 @@ public class JanksonOps implements DynamicOps<JsonElement> {
 
         JsonArray retArray = new JsonArray();
         if (!array.isEmpty()) {
-            retArray.addAll(array);
+            for (int i = 0; i < array.size(); i++) {
+                retArray.add(array.get(i));
+                if (array.get(i) instanceof Commented commented) {
+                    retArray.setComment(i, commented.resolveComment(array, array.get(i)));
+                }
+            }
         }
         retArray.add(value);
         if (value instanceof Commented commented) {
-            retArray.setComment(retArray.indexOf(value), commented.getComment());
+            retArray.setComment(retArray.indexOf(value), commented.resolveComment(retArray, value));
         }
         return DataResult.success(retArray);
     }
@@ -122,11 +127,16 @@ public class JanksonOps implements DynamicOps<JsonElement> {
 
         JsonObject retMap = new JsonObject();
         if (!obj.isEmpty()) {
-            retMap.putAll(obj);
+            for (Map.Entry<String, JsonElement> entry : obj.entrySet()) {
+                retMap.put(entry.getKey(), entry.getValue());
+                if (entry.getValue() instanceof Commented commented) {
+                    retMap.setComment(entry.getKey(), commented.resolveComment(obj, JsonPrimitive.of(entry.getKey())));
+                }
+            }
         }
         retMap.put(primitive.asString(), value);
         if (primitive instanceof Commented commented) {
-            retMap.setComment(primitive.asString(), commented.getComment());
+            retMap.setComment(primitive.asString(), commented.resolveComment(retMap, primitive));
         }
         return DataResult.success(retMap);
     }
@@ -205,14 +215,14 @@ public class JanksonOps implements DynamicOps<JsonElement> {
                     for (int i = 0; i < arr.size(); i++) {
                         ret.add(arr.get(i));
                         if (arr.get(i) instanceof Commented commented) {
-                            ret.setComment(i, commented.getComment());
+                            ret.setComment(i, commented.resolveComment(arr, arr.get(i)));
                         }
                     }
                 }
                 for (int i = 0; i < array.size(); i++) {
                     ret.add(array.get(i));
                     if (array.get(i) instanceof Commented commented) {
-                        ret.setComment(i, commented.getComment());
+                        ret.setComment(i, commented.resolveComment(array, array.get(i)));
                     }
                 }
                 return DataResult.success(ret);
@@ -226,7 +236,7 @@ public class JanksonOps implements DynamicOps<JsonElement> {
             builder = builder.map(array -> {
                 array.add(value);
                 if (value instanceof Commented commented) {
-                    array.setComment(array.indexOf(value), commented.getComment());
+                    array.setComment(array.indexOf(value), commented.resolveComment(array, value));
                 }
                 return array;
             });
@@ -238,7 +248,7 @@ public class JanksonOps implements DynamicOps<JsonElement> {
             builder = builder.apply2stable((array, jsonElement) -> {
                 array.add(jsonElement);
                 if (jsonElement instanceof Commented commented) {
-                    array.setComment(array.indexOf(jsonElement), commented.getComment());
+                    array.setComment(array.indexOf(jsonElement), commented.resolveComment(array, jsonElement));
                 }
                 return array;
                 }, value);
@@ -272,7 +282,7 @@ public class JanksonOps implements DynamicOps<JsonElement> {
                 return builder.map(object -> {
                     object.put(s, value);
                     if (value instanceof Commented commented) {
-                        object.setComment(s, commented.getComment());
+                        object.setComment(s, commented.resolveComment(object, value));
                     }
                     return object;
                 });
@@ -286,7 +296,7 @@ public class JanksonOps implements DynamicOps<JsonElement> {
                 return builder.apply2stable((object, v) -> {
                     object.put(s, v);
                     if (v instanceof Commented commented) {
-                        object.setComment(s, commented.getComment());
+                        object.setComment(s, commented.resolveComment(object, v));
                     }
                     return object;
                 }, value);
