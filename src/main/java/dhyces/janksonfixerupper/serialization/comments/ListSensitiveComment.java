@@ -2,7 +2,6 @@ package dhyces.janksonfixerupper.serialization.comments;
 
 import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonElement;
-import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
@@ -15,7 +14,10 @@ public class ListSensitiveComment implements Comment {
     @Override
     public String apply(JsonElement container, JsonElement key) {
         if (container instanceof JsonArray array) {
-            return map.get(array.indexOf(key));
+            int index = array.indexOf(key);
+            if (map.containsKey(index)) {
+                return map.get(index);
+            }
         }
         return DEFAULT_VALUE;
     }

@@ -1,19 +1,16 @@
 package dhyces.janksonfixerupper.serialization;
 
 import blue.endless.jankson.JsonArray;
+import blue.endless.jankson.JsonElement;
 import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.JsonPrimitive;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
-import com.mojang.serialization.codecs.ListCodec;
 import dhyces.janksonfixerupper.serialization.comments.Comment;
 import dhyces.janksonfixerupper.serialization.comments.ListSensitiveComment;
 import dhyces.janksonfixerupper.serialization.comments.MapSensitiveComment;
-import dhyces.janksonfixerupper.serialization.wrappers.CommentedJsonArray;
-import dhyces.janksonfixerupper.serialization.wrappers.CommentedJsonObject;
-import dhyces.janksonfixerupper.serialization.wrappers.CommentedJsonPrimitive;
 
 import java.util.List;
 import java.util.Map;
@@ -43,7 +40,7 @@ public class CommentedCodec<A> implements Codec<A> {
     public static <A> Codec<List<A>> commentedList(Codec<A> codec, Consumer<ListSensitiveComment.Builder> elementCommentConsumer) {
         ListSensitiveComment.Builder builder = new ListSensitiveComment.Builder();
         elementCommentConsumer.accept(builder);
-        return Codec.list(new CommentedCodec<>(codec, builder.build()));
+        return commented(Codec.list(codec), builder.build());
     }
 
     public static <A, V> CommentedCodec<Map<A, V>> commentedMap(Codec<Map<A, V>> codec, Consumer<MapSensitiveComment.Builder> elementCommentConsumer) {
@@ -60,21 +57,22 @@ public class CommentedCodec<A> implements Codec<A> {
     @SuppressWarnings("unchecked")
     @Override
     public <T> DataResult<T> encode(A input, DynamicOps<T> ops, T prefix) {
-        // Check ops, so we don't wrap stuff that won't be operated on
-        if (!(ops instanceof JanksonOps)) {
-            return wrapped.encode(input, ops, prefix);
-        }
-
         DataResult<T> result = wrapped.encode(input, ops, prefix);
-        return (DataResult<T>)result.map(t -> {
-            if (t instanceof JsonPrimitive primitive) {
-                return new CommentedJsonPrimitive(primitive.getValue(), comment);
-            }
+        return result.map(t -> {
             if (t instanceof JsonArray array) {
-                return new CommentedJsonArray(array, comment);
-            }
-            if (t instanceof JsonObject obj) {
-                return new CommentedJsonObject(obj, comment);
+                for (int i = 0; i < array.size(); i++) {
+                    String commentStr = comment.apply(array, array.get(i));
+                    if (!commentStr.isBlank()) {
+                        array.setComment(i, commentStr);
+                    }
+                }
+            } else if (t instanceof JsonObject obj) {
+                for (Map.Entry<String, JsonElement> entry : obj.entrySet()) {
+                    String commentStr = comment.apply(obj, JsonPrimitive.of(entry.getKey()));
+                    if (!commentStr.isBlank()) {
+                        obj.setComment(entry.getKey(), commentStr);
+                    }
+                }
             }
             return t;
         });

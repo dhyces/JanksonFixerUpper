@@ -68,12 +68,19 @@ public class TestJanksonOps {
     }
 
     private record TestObject(String someStr, double someDouble, List<Float> floatList) {
-        public static final Codec<TestObject> CODEC = RecordCodecBuilder.create(instance ->
+        public static final Codec<TestObject> CODEC = CommentedCodec.commented(RecordCodecBuilder.create(instance ->
                 instance.group(
-                        CommentedCodec.commented(Codec.STRING, "This is a comment for the string object someStr").fieldOf("someStr").forGetter(TestObject::someStr),
-                        CommentedCodec.commented(Codec.DOUBLE, "This is a comment on the double!").fieldOf("someDouble").forGetter(TestObject::someDouble),
-                        CommentedCodec.commentedCommentedList(Codec.FLOAT, Comment.constant("test"), builder -> builder.whenIndexIs(1, "bruh")).fieldOf("floatList").forGetter(TestObject::floatList)
+                        Codec.STRING.fieldOf("someStr").forGetter(TestObject::someStr),
+                        Codec.DOUBLE.fieldOf("someDouble").forGetter(TestObject::someDouble),
+                        CommentedCodec.commentedList(Codec.FLOAT, builder -> builder.whenIndexIs(1, "comment on index 1")).fieldOf("floatList").forGetter(TestObject::floatList)
                 ).apply(instance, TestObject::new)
-        );
+        ), Comment.ifMapElseEmpty((object, key) -> {
+            return switch (key) {
+                case "someStr" -> "Comment on string!";
+                case "someDouble" -> "Comment on double!";
+                case "floatList" -> "Comment on list!";
+                default -> "";
+            };
+        }));
     }
 }

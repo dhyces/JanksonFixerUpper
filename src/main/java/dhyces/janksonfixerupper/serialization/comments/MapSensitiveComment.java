@@ -16,7 +16,10 @@ public class MapSensitiveComment implements Comment {
     @Override
     public String apply(JsonElement container, JsonElement key) {
         if (container instanceof JsonObject && key instanceof JsonPrimitive primitive) {
-            return map.get(primitive.asString());
+            String keyStr = primitive.asString();
+            if (map.containsKey(keyStr)) {
+                return map.get(keyStr);
+            }
         }
         return DEFAULT_VALUE;
     }
