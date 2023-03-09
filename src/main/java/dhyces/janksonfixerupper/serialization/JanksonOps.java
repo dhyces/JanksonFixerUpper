@@ -94,6 +94,11 @@ public class JanksonOps implements DynamicOps<JsonElement> {
     }
 
     @Override
+    public JsonElement createBoolean(boolean value) {
+        return value ? JsonPrimitive.TRUE : JsonPrimitive.FALSE;
+    }
+
+    @Override
     public DataResult<JsonElement> mergeToList(JsonElement list, JsonElement value) {
         if (!(list instanceof JsonArray array)) {
             return DataResult.error("Cannot be accessed as a list: " + list);
